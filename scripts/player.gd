@@ -15,6 +15,12 @@ func _physics_process(delta):
 		"ui_up",
 		"ui_down"
 	)
+	velocity = direction * SPEED
+	move_and_slide()
+
+	# Activate Echo Pulse using E
+	if Input.is_action_just_pressed("echo_pulse"):
+		get_parent().get_node("Maze").activate_echo(global_position)
 
 	velocity = direction * SPEED
 	move_and_slide()
