@@ -50,10 +50,10 @@ func _ready():
 	# Create the maze using the selected map
 	create_wall_collisions()
 	create_exit()
-
 	# Create UI
 	create_echo_ui()
 	create_timer_ui()
+	create_level_ui()
 
 	# Update UI with level settings
 	timer_label.text = "TIME: " + str(ceil(time_left))
@@ -109,6 +109,19 @@ func create_timer_ui():
 
 	add_child(timer_label)
 
+func create_level_ui():
+	var level_label = Label.new()
+
+	level_label.text = level_manager.get_current_level_data()["name"]
+	level_label.position = Vector2(400, 20)
+	level_label.size = Vector2(350, 40)
+	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	level_label.add_theme_font_size_override("font_size", 24)
+	level_label.add_theme_color_override(
+		"font_color",
+		Color("#E0D7FF")
+	)
+	add_child(level_label)
 
 func show_game_over():
 	var game_over_label = Label.new()
