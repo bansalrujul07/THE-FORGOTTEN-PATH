@@ -2,6 +2,7 @@ extends Node2D
 
 const CELL_SIZE = 48
 var wall_alpha = 1.0
+var level_manager: Node
 var echo_active = false
 var echo_position = Vector2.ZERO
 var echo_time_left = 0.0
@@ -15,7 +16,7 @@ var game_won = false
 const ECHO_RADIUS = 180.0
 const ECHO_DURATION = 1.5
 
-const MAZE_MAP = [
+var MAZE_MAP = [
 	"###############",
 	"#S....#.......#",
 	"#.##..#.#####.#",
@@ -34,17 +35,37 @@ const FLOOR_COLOR = Color("#20243B")
 const START_COLOR = Color("#39D5FF")
 const EXIT_COLOR = Color("#A78BFA")
 
-
 func _ready():
+	# Get the current level settings
+	level_manager = LevelManager
+	var level_data = level_manager.get_current_level_data()
+
+	# Load the selected level's maze
+	MAZE_MAP = level_data["maze_map"]
+
+	# Load difficulty settings
+	time_left = level_data["time_limit"]
+	echo_charges = level_data["echo_charges"]
+
+	# Create the maze using the selected map
 	create_wall_collisions()
 	create_exit()
+
+	# Create UI
 	create_echo_ui()
 	create_timer_ui()
+
+	# Update UI with level settings
+	timer_label.text = "TIME: " + str(ceil(time_left))
+	echo_label.text = "ECHO: " + str(echo_charges)
+
 	# Keep the maze visible for 3 seconds
 	await get_tree().create_timer(3.0).timeout
+
 	# Fade the walls over 2 seconds
 	var tween = create_tween()
 	tween.tween_property(self, "wall_alpha", 0.0, 2.0)
+
 	await tween.finished
 
 func activate_echo(player_position: Vector2):
@@ -88,6 +109,7 @@ func create_timer_ui():
 
 	add_child(timer_label)
 
+
 func show_game_over():
 	var game_over_label = Label.new()
 	game_over_label.text = "TIME'S UP!\nGAME OVER"
@@ -98,8 +120,39 @@ func show_game_over():
 		"font_color",
 		Color("#FF5C7A")
 	)
-
 	add_child(game_over_label)
+
+func show_level_completed():
+	var completed_label = Label.new()
+	completed_label.text = "LEVEL COMPLETED!\n" + level_manager.get_current_level_data()["name"]
+
+	completed_label.position = Vector2(350, 220)
+	completed_label.add_theme_font_size_override("font_size", 36)
+	completed_label.add_theme_color_override(
+		"font_color",
+		Color("#39D5FF")
+	)
+
+	add_child(completed_label)
+
+	if level_manager.has_next_level():
+		var next_button = Button.new()
+		next_button.text = "NEXT LEVEL"
+		next_button.position = Vector2(480, 360)
+		next_button.size = Vector2(190, 55)
+
+		next_button.pressed.connect(_on_next_level_pressed)
+		add_child(next_button)
+	else:
+		var final_label = Label.new()
+		final_label.text = "YOU COMPLETED ALL LEVELS!"
+		final_label.position = Vector2(390, 370)
+		final_label.add_theme_font_size_override("font_size", 24)
+		add_child(final_label)
+
+func _on_next_level_pressed():
+	if level_manager.advance_level():
+		get_tree().reload_current_scene()
 
 	# Stop player movement
 	var player = get_parent().get_node("Player")
@@ -170,14 +223,7 @@ func _on_exit_body_entered(body):
 		
 		body.velocity = Vector2.ZERO
 		body.set_physics_process(false)
-		var win_label = Label.new()
-		win_label.text = "YOU WIN!"
-		win_label.position = Vector2(450, 280)
-		win_label.add_theme_font_size_override("font_size", 48)
-		win_label.modulate = Color("#A78BFA")
-
-		add_child(win_label)
-
+		show_level_completed()
 		print("Congratulations! You completed the maze!")
 
 func _draw():
