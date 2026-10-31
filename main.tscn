@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://pv78ifyv66ao"]
+
+[ext_resource type="Script" uid="uid://3amj23udck6a" path="res://scripts/maze.gd" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://jgpe150h7wj0" path="res://scripts/player.gd" id="2_0xm2m"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_h24bn"]
+radius = 12.0
+
+[node name="Main" type="Node2D" unique_id=1947065883]
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=566114494]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1152.0
+offset_bottom = 648.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0627451, 0.07058824, 0.14509805, 1)
+
+[node name="Maze" type="Node2D" parent="." unique_id=1376844158]
+script = ExtResource("1_ig7tw")
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=659738544]
+script = ExtResource("2_0xm2m")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=1501259544]
+shape = SubResource("CircleShape2D_h24bn")
