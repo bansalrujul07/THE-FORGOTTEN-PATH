@@ -2,6 +2,8 @@ extends Node2D
 
 const CELL_SIZE = 48
 
+var wall_alpha = 1.0
+
 const MAZE_MAP = [
 	"###############",
 	"#S....#.......#",
@@ -21,9 +23,18 @@ const FLOOR_COLOR = Color("#20243B")
 const START_COLOR = Color("#39D5FF")
 const EXIT_COLOR = Color("#A78BFA")
 
+
 func _ready():
 	create_wall_collisions()
 	create_exit()
+
+	# Keep the maze visible for 3 seconds
+	await get_tree().create_timer(3.0).timeout
+
+	# Fade the walls over 2 seconds
+	var tween = create_tween()
+	tween.tween_property(self, "wall_alpha", 0.0, 2.0)
+
 
 func create_wall_collisions():
 	var rows = MAZE_MAP.size()
@@ -51,18 +62,18 @@ func create_wall_collisions():
 
 				add_child(wall)
 
+
 func create_exit():
 	var exit_area = Area2D.new()
 	var collision = CollisionShape2D.new()
 	var shape = RectangleShape2D.new()
 
-	# Very small detection area
 	shape.size = Vector2(2, 2)
 	collision.shape = shape
 
 	exit_area.add_child(collision)
 
-	# Find the exact exit cell from the maze map
+	# Find the exit cell from the maze map
 	for y in range(MAZE_MAP.size()):
 		var x = MAZE_MAP[y].find("E")
 
@@ -96,6 +107,7 @@ func _on_exit_body_entered(body):
 
 		print("Congratulations! You completed the maze!")
 
+
 func _draw():
 	var rows = MAZE_MAP.size()
 	var cols = MAZE_MAP[0].length()
@@ -121,12 +133,18 @@ func _draw():
 			)
 
 			if cell == "#":
-				draw_rect(rect, WALL_COLOR)
-			else:
+				var faded_wall_color = WALL_COLOR
+				faded_wall_color.a = wall_alpha
+				draw_rect(rect, faded_wall_color)
+			elif wall_alpha >= 1.0:
 				draw_rect(rect, FLOOR_COLOR)
 
 			if cell == "S":
 				draw_rect(rect.grow(-10), START_COLOR)
-
 			elif cell == "E":
 				draw_rect(rect.grow(-10), EXIT_COLOR)
+
+
+func _process(_delta):
+	if wall_alpha < 1.0:
+		queue_redraw()
